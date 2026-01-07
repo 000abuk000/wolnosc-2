@@ -1,0 +1,1012 @@
+# 📁 Struktura projektu dla GitHub
+
+## Struktura folderów
+
+```
+dziennik-wybaczania/
+│
+├── index.html              # Główny plik HTML
+├── css/
+│   └── style.css          # Wszystkie style
+├── js/
+│   ├── app.js             # Główna logika aplikacji
+│   ├── data.js            # Dane (emocje, afirmacje, szablony)
+│   └── storage.js         # LocalStorage management
+├── assets/
+│   ├── icon.png           # Ikona aplikacji (512x512)
+│   └── screenshot.png     # Screenshot dla README
+├── README.md              # Dokumentacja
+├── LICENSE                # Licencja MIT
+└── .gitignore            # Ignorowane pliki
+```
+
+---
+
+## 📄 index.html
+
+```html
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Dziennik Wybaczania - Aplikacja wspierająca proces uzdrowienia emocjonalnego">
+    <meta name="keywords" content="dziennik, emocje, wybaczanie, mental health, wellbeing">
+    <meta name="author" content="Twoje Imię">
+    <title>Dziennik Wybaczania</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="assets/icon.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <div class="header">
+                <h1>Jak się dzisiaj czujesz?</h1>
+                <p id="current-date"></p>
+            </div>
+            <div class="content">
+                <div class="emotion-grid" id="emotion-grid"></div>
+                
+                <div class="intensity-slider">
+                    <label>Intensywność (1-5)</label>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="5" value="3" id="intensity-slider">
+                    </div>
+                    <div class="intensity-labels">
+                        <span>Słaba</span>
+                        <span class="intensity-value" id="intensity-value">3</span>
+                        <span>Silna</span>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="app.saveCheckin()">Zapisz check-in</button>
+                <button class="btn btn-secondary" onclick="app.goToTemplates()">Zapisz i dodaj wpis</button>
+
+                <div class="affirmation-box">
+                    <div class="affirmation-text" id="affirmation-text"></div>
+                    <button class="btn-refresh" onclick="app.refreshAffirmation()">🔄 Odśwież</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Screen -->
+        <div id="history-screen" class="screen">
+            <div class="header">
+                <h1>Twoje wpisy</h1>
+            </div>
+            <div class="content" id="history-content"></div>
+        </div>
+
+        <!-- Trends Screen -->
+        <div id="trends-screen" class="screen">
+            <div class="header">
+                <h1>Twoje trendy</h1>
+            </div>
+            <div class="content">
+                <div class="chart-container">
+                    <div class="chart-title">Nastrój w czasie</div>
+                    <div class="period-selector">
+                        <button class="period-btn active" onclick="app.setPeriod(7)">7 dni</button>
+                        <button class="period-btn" onclick="app.setPeriod(30)">30 dni</button>
+                        <button class="period-btn" onclick="app.setPeriod(90)">90 dni</button>
+                    </div>
+                    <div id="chart-content"></div>
+                </div>
+                <div id="insights-content"></div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="screen">
+            <div class="header">
+                <h1>Ustawienia</h1>
+            </div>
+            <div class="content">
+                <div class="settings-section">
+                    <div class="settings-title">Powiadomienia</div>
+                    <div class="settings-item">
+                        <span class="settings-label">Włącz powiadomienia</span>
+                        <div class="toggle" onclick="app.toggleSetting(this)"></div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-title">Prywatność i dane</div>
+                    <div class="info-box">
+                        <div class="info-text">
+                            <strong>Co zbieramy:</strong> Tylko Twoje wpisy i emocje, zapisane lokalnie w przeglądarce.<br><br>
+                            <strong>Czego NIE robimy:</strong> Nie sprzedajemy danych, nie wyświetlamy reklam, nie udostępniamy informacji firmom trzecim.
+                        </div>
+                    </div>
+                    <button class="btn btn-danger" onclick="app.confirmDeleteAll()">🗑️ Usuń wszystkie dane</button>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-title">Informacje</div>
+                    <div class="info-box">
+                        <div class="info-text">
+                            <strong>Wersja:</strong> 1.0.0<br><br>
+                            <strong>Disclaimer:</strong> Ta aplikacja nie zastępuje profesjonalnej terapii ani pomocy medycznej. W sytuacjach kryzysowych skontaktuj się z psychologiem lub zadzwoń pod numer 116 123.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Templates Screen -->
+        <div id="templates-screen" class="screen">
+            <div class="header">
+                <h1>Wybierz szablon</h1>
+                <p>Dopasowany do Twojej emocji</p>
+            </div>
+            <div class="content">
+                <div id="templates-content"></div>
+                <button class="btn btn-secondary" onclick="app.showScreen('home-screen')">Anuluj</button>
+            </div>
+        </div>
+
+        <!-- Journal Screen -->
+        <div id="journal-screen" class="screen">
+            <div class="header">
+                <h1 id="journal-title"></h1>
+            </div>
+            <div class="content">
+                <div id="journal-prompts"></div>
+                <button class="btn" onclick="app.saveEntry()">Zapisz wpis</button>
+                <button class="btn btn-secondary" onclick="app.showScreen('templates-screen')">Wróć</button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="app.showScreen('home-screen')">
+                <span class="nav-icon">🏠</span>
+                Start
+            </button>
+            <button class="nav-tab" onclick="app.showScreen('history-screen')">
+                <span class="nav-icon">📖</span>
+                Historia
+            </button>
+            <button class="nav-tab" onclick="app.showScreen('trends-screen')">
+                <span class="nav-icon">📊</span>
+                Trendy
+            </button>
+            <button class="nav-tab" onclick="app.showScreen('settings-screen')">
+                <span class="nav-icon">⚙️</span>
+                Ustawienia
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">⚠️ Usunąć wszystkie dane?</div>
+            <div class="modal-text">Ta akcja jest nieodwracalna. Wszystkie Twoje wpisy, check-iny i ustawienia zostaną trwale usunięte.</div>
+            <div class="modal-buttons">
+                <button class="modal-btn" style="background: #f0f0f0; color: #333;" onclick="app.closeModal()">Anuluj</button>
+                <button class="modal-btn" style="background: #ff5252; color: white;" onclick="app.deleteAllData()">Usuń</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+```
+
+---
+
+## 📄 README.md
+
+```markdown
+# 🌸 Dziennik Wybaczania
+
+Aplikacja wspierająca proces uzdrowienia emocjonalnego z podejściem "healing-first". Wybaczenie jest opcjonalne – to Twoja droga, Twoje tempo.
+
+![Screenshot](assets/screenshot.png)
+
+## ✨ Funkcje
+
+- ✅ **Check-in emocji** - Śledź swoje emocje z 8 opcjami + intensywność (1-5)
+- ✅ **Dzienne afirmacje** - Dopasowane do Twojej emocji
+- ✅ **5 szablonów dziennika** - Gotowe prompty zamiast pustej kartki
+- ✅ **Historia wpisów** - Przeglądaj swoje check-iny i refleksje
+- ✅ **Trendy i wzorce** - Obserwuj zmiany w nastrojach
+- ✅ **Privacy-first** - Wszystkie dane zapisane lokalnie w przeglądarce
+- ✅ **Bez reklam** - Nie sprzedajemy Twoich danych
+
+## 🚀 Demo na żywo
+
+👉 [https://twoj-username.github.io/dziennik-wybaczania](https://twoj-username.github.io/dziennik-wybaczania)
+
+## 🛠️ Technologie
+
+- **HTML5** - Struktura
+- **CSS3** - Stylizacja (bez frameworków)
+- **Vanilla JavaScript** - Logika aplikacji
+- **LocalStorage** - Przechowywanie danych
+
+## 📦 Instalacja lokalna
+
+1. Sklonuj repozytorium:
+```bash
+git clone https://github.com/twoj-username/dziennik-wybaczania.git
+cd dziennik-wybaczania
+```
+
+2. Otwórz `index.html` w przeglądarce
+```bash
+# lub użyj prostego serwera HTTP
+python -m http.server 8000
+# następnie otwórz http://localhost:8000
+```
+
+## 🌐 Deploy na GitHub Pages
+
+1. Fork tego repozytorium
+2. Przejdź do Settings → Pages
+3. Wybierz branch `main` i folder `/ (root)`
+4. Zapisz - Twoja aplikacja będzie dostępna pod adresem `https://twoj-username.github.io/dziennik-wybaczania`
+
+## 📱 Użycie jako PWA (Progressive Web App)
+
+Aplikacja może działać jak natywna aplikacja mobilna:
+
+1. Otwórz w przeglądarce mobilnej (Chrome, Safari)
+2. Wybierz "Dodaj do ekranu głównego"
+3. Uruchamiaj jak zwykłą aplikację
+
+## 🔒 Prywatność
+
+- **Brak serwera** - Wszystko działa w przeglądarce
+- **LocalStorage** - Dane zapisane tylko na Twoim urządzeniu
+- **Brak analityki** - Nie śledzimy Twoich działań
+- **Brak reklam** - Nie monetyzujemy Twoich danych
+- **Open source** - Kod jest publiczny i audytowalny
+
+## 📚 Szablony dziennika
+
+1. **🔥 Uwolnienie złości** - Bez oceniania, z bezpieczeństwem
+2. **🌊 Ukojenie i bezpieczeństwo** - Wyciszenie układu nerwowego
+3. **🚧 Granice i decyzje** - Konkretne granice
+4. **💜 List do siebie** - Samo-współczucie zamiast krytyki
+5. **🕊️ Co mogę puścić** - Opcjonalne wybaczanie
+
+## 🤝 Współpraca
+
+Zapraszamy do współpracy! Jeśli chcesz pomóc:
+
+1. Fork repozytorium
+2. Stwórz branch (`git checkout -b feature/NowaFunkcja`)
+3. Commit zmian (`git commit -m 'Dodaj nową funkcję'`)
+4. Push do brancha (`git push origin feature/NowaFunkcja`)
+5. Otwórz Pull Request
+
+## 🐛 Zgłaszanie błędów
+
+Znalazłeś bug? [Otwórz issue](https://github.com/twoj-username/dziennik-wybaczania/issues)
+
+## 📄 Licencja
+
+MIT License - Zobacz [LICENSE](LICENSE) dla szczegółów
+
+## ⚠️ Disclaimer
+
+Ta aplikacja nie zastępuje profesjonalnej terapii ani pomocy medycznej. W sytuacjach kryzysowych skontaktuj się z:
+- **Telefon Zaufania**: 116 123
+- **Telefon dla dzieci i młodzieży**: 116 111
+- **Telefon w sprawie przemocy domowej**: 800 120 002
+
+## 💖 Wsparcie projektu
+
+Jeśli aplikacja Ci pomogła, rozważ:
+- ⭐ Danie gwiazdki na GitHub
+- 📢 Podzielenie się z innymi
+- 💬 Zostawienie opinii
+
+## 📞 Kontakt
+
+- GitHub: [@twoj-username](https://github.com/twoj-username)
+- Email: twoj-email@example.com
+
+---
+
+Wykonane z 💙 dla osób w procesie uzdrowienia emocjonalnego
+```
+
+---
+
+## 📄 LICENSE (MIT)
+
+```
+MIT License
+
+Copyright (c) 2024 [Twoje Imię]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+---
+
+## 📄 .gitignore
+
+```
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+temp/
+
+# Build files (jeśli dodasz build process w przyszłości)
+dist/
+build/
+```
+
+---
+
+## 🚀 Instrukcje deploy
+
+### Metoda 1: GitHub Pages (Zalecane)
+
+1. **Utwórz repozytorium na GitHub:**
+   - Nazwa: `dziennik-wybaczania`
+   - Publiczne
+   - Bez README (już masz)
+
+2. **Upload plików:**
+```bash
+git init
+git add .
+git commit -m "Initial commit - Dziennik Wybaczania v1.0"
+git branch -M main
+git remote add origin https://github.com/twoj-username/dziennik-wybaczania.git
+git push -u origin main
+```
+
+3. **Aktywuj GitHub Pages:**
+   - Settings → Pages
+   - Source: Deploy from branch
+   - Branch: `main` / `/ (root)`
+   - Save
+
+4. **Gotowe!** Aplikacja dostępna pod:
+   `https://twoj-username.github.io/dziennik-wybaczania`
+
+### Metoda 2: Netlify (Drag & Drop)
+
+1. Zip cały folder projektu
+2. Wejdź na [netlify.com](https://netlify.com)
+3. Przeciągnij zip na stronę
+4. Gotowe - dostaniesz automatyczny URL
+
+### Metoda 3: Vercel
+
+```bash
+npm i -g vercel
+vercel
+```
+
+---
+
+## ✅ Checklist przed publikacją
+
+- [ ] Zaktualizuj `README.md` z właściwym username
+- [ ] Dodaj screenshot do `assets/screenshot.png`
+- [ ] Sprawdź wszystkie linki
+- [ ] Przetestuj na mobile
+- [ ] Przetestuj na różnych przeglądarkach
+- [ ] Dodaj `manifest.json` dla PWA (opcjonalnie)
+- [ ] Dodaj `service-worker.js` dla offline mode (opcjonalnie)
+
+---
+
+## 🎉 Gotowe do użycia!
+
+Masz teraz **kompletną aplikację webową** gotową do umieszczenia na GitHub!
+
+Możesz:
+1. Skopiować cały kod do swojego projektu
+2. Uploadować na GitHub
+3. Włączyć GitHub Pages
+4. Podzielić się linkiem z innymi
+
+**Link będzie działał jako:** `https://twoj-username.github.io/dziennik-wybaczania`
+
+// ============================================
+// js/data.js - Dane aplikacji
+// ============================================
+
+const AppData = {
+    emotions: [
+        { code: 'anger', icon: '😤', label: 'Złość' },
+        { code: 'sadness', icon: '😢', label: 'Smutek' },
+        { code: 'anxiety', icon: '😰', label: 'Lęk' },
+        { code: 'calm', icon: '😌', label: 'Spokój' },
+        { code: 'guilt', icon: '😔', label: 'Wina' },
+        { code: 'shame', icon: '😳', label: 'Wstyd' },
+        { code: 'loneliness', icon: '😞', label: 'Samotność' },
+        { code: 'other', icon: '🤔', label: 'Inna' }
+    ],
+
+    affirmations: {
+        anger: [
+            "Moja złość ma sens — pokazuje, co jest dla mnie ważne.",
+            "Mogę czuć złość i nadal wybierać bezpieczne działanie.",
+            "Oddycham. Złość jest falą — nie musi mną kierować.",
+            "Mam prawo powiedzieć „nie" bez tłumaczenia się godzinami.",
+            "Mogę rozładować napięcie bez ranienia siebie ani innych."
+        ],
+        sadness: [
+            "Smutek jest częścią uzdrowienia. Nie muszę go omijać.",
+            "Mogę być dziś delikatny/a dla siebie — to nie słabość.",
+            "Mam prawo zwolnić, gdy jest mi ciężko.",
+            "Nie jestem problemem. Mam trudny moment.",
+            "Mogę szukać ciepła i wsparcia bez poczucia winy."
+        ],
+        anxiety: [
+            "Oddycham wolniej. Mój układ nerwowy może się uspokoić.",
+            "To tylko myśl — nie fakt, nie przepowiednia.",
+            "Mogę wrócić do tego, co tu i teraz: ciało, oddech, otoczenie.",
+            "Nie muszę mieć 100% pewności, żeby zrobić mały krok.",
+            "Dziś wybieram bezpieczeństwo, nie perfekcję."
+        ],
+        calm: [
+            "Mogę zwolnić. Nie wszystko jest pilne.",
+            "Spokój to praktyka. Robię ją po trochu.",
+            "Jeden spokojny oddech ma znaczenie.",
+            "Mogę być tu, gdzie jestem — bez ocen.",
+            "Moje tempo jest w porządku."
+        ],
+        guilt: [
+            "Mogę wziąć odpowiedzialność bez biczowania się.",
+            "Błąd nie przekreśla mojej wartości.",
+            "Mogę naprawić, co się da — i odpuścić resztę.",
+            "Uczę się. Nauka bywa nieidealna.",
+            "Nie muszę zasługiwać na odpoczynek. Mogę odpocząć teraz."
+        ],
+        shame: [
+            "Wstyd mówi głośno, ale nie mówi prawdy o mnie.",
+            "Mogę być niedoskonały/a i nadal godny/a szacunku.",
+            "Nie muszę się ukrywać, żeby być bezpieczny/a.",
+            "To, co się wydarzyło, nie definiuje całego mojego życia.",
+            "Mogę mówić do siebie ciszej i łagodniej."
+        ],
+        loneliness: [
+            "Samotność jest sygnałem. Nie oznacza, że coś jest ze mną nie tak.",
+            "Mogę szukać kontaktu w małych krokach.",
+            "Jedna wiadomość do zaufanej osoby to też odwaga.",
+            "Nie muszę być „w formie", żeby zasługiwać na obecność.",
+            "Mogę być dla siebie dobrym towarzyszem, choćby na chwilę."
+        ],
+        other: [
+            "Mogę mówić do siebie jak do kogoś, kogo kocham.",
+            "Nie muszę zasłużyć na życzliwość. Mogę ją sobie dać.",
+            "Jestem człowiekiem. To oznacza, że czasem mi trudno.",
+            "Wybieram wsparcie zamiast samobiczowania.",
+            "Mogę odpocząć, nawet jeśli nie zrobiłem/am wszystkiego."
+        ]
+    },
+
+    templates: [
+        {
+            id: 'anger',
+            icon: '🔥',
+            title: 'Uwolnienie złości',
+            desc: 'Bez oceniania. Złość ma prawo tu być. Rozładuj ją bez szkody.',
+            prompts: [
+                'Co dokładnie wywołało moją złość? Opisz fakty bez ocen.',
+                'Gdzie czuję złość w ciele? Jaką ma intensywność (1–5)?',
+                'Czego moja złość broni? Jakiej potrzeby lub wartości dotyczy?',
+                'Co chciał(a)bym powiedzieć (bez cenzury), gdybym mógł(a) być w pełni szczery(a)?',
+                'Jeden bezpieczny krok na dziś: co pomoże mi rozładować napięcie bez krzywdy?'
+            ]
+        },
+        {
+            id: 'soothe',
+            icon: '🌊',
+            title: 'Ukojenie i bezpieczeństwo',
+            desc: 'Wyciszenie układu nerwowego i powrót do poczucia kontroli.',
+            prompts: [
+                'Co teraz czuję? Nazwij emocję i daj jej zgodę na istnienie.',
+                'Co jest w tej chwili bezpieczne lub stałe w moim otoczeniu? (3 rzeczy)',
+                'Jaka myśl najbardziej mnie nakręca? Jak mogę ją złagodzić jednym zdaniem bardziej realistycznym?',
+                'Czego potrzebuję w ciągu najbliższych 2 godzin (sen, jedzenie, kontakt, cisza, ruch)?',
+                'Jak mogę sobie dodać otuchy dziś wieczorem? (1 mały gest dla siebie)'
+            ]
+        },
+        {
+            id: 'boundaries',
+            icon: '🚧',
+            title: 'Granice i decyzje',
+            desc: 'Co jest OK, a co nie. Konkretne granice i następny krok.',
+            prompts: [
+                'Co jest dla mnie nie do przyjęcia w tej sytuacji? (konkret)',
+                'Jaka granica ochroni mnie teraz najlepiej? (co robię / czego nie robię)',
+                'Jak mogę zakomunikować tę granicę prosto i spokojnie? Napisz wersję 1–2 zdania.',
+                'Czego się boję, gdy stawiam granice? Co jest bardziej prawdopodobne niż najgorszy scenariusz?',
+                'Jeden następny krok (w 24h): co konkretnie zrobię lub odpuszczę?'
+            ]
+        },
+        {
+            id: 'compassion',
+            icon: '💜',
+            title: 'List do siebie (samo-współczucie)',
+            desc: 'Mniej surowości, więcej życzliwości. Jak do przyjaciela.',
+            prompts: [
+                'Co mnie teraz boli? Opisz to tak, jakbyś mówił(a) do bliskiej osoby.',
+                'Jakie słowa wsparcia powiedział(a)bym przyjacielowi w tej samej sytuacji?',
+                'Za co mogę sobie okazać uznanie dzisiaj, nawet jeśli to drobiazg?',
+                'Jaka część mnie czuje wstyd/winę? Czego ona potrzebuje zamiast krytyki?',
+                'Napisz 3 zdania do siebie: życzliwe, prawdziwe, bez lukru.'
+            ]
+        },
+        {
+            id: 'letgo',
+            icon: '🕊️',
+            title: 'Co mogę puścić (wybaczenie opcjonalne)',
+            desc: 'Uzdrowienie najpierw. Wybaczenie to możliwość, nie obowiązek.',
+            prompts: [
+                'Co się wydarzyło i co to dla mnie znaczy? (krótko, bez usprawiedliwień)',
+                'Jaką cenę płacę, trzymając się tej historii? (energia, czas, spokój)',
+                'Co mogę puścić dziś o 1%? (np. potrzebę odpowiedzi, zemsty, kontroli)',
+                'Jakie granice chronią mnie przed powtórką? (konkretne zasady dla mnie)',
+                'Jeśli wybaczenie byłoby kiedyś możliwe — jak wyglądałoby „bezpieczne" tempo? (opcjonalnie)'
+            ]
+        }
+    ]
+};
+
+// ============================================
+// js/storage.js - LocalStorage management
+// ============================================
+
+const Storage = {
+    STORAGE_KEY: 'dziennik_wybaczania_data',
+
+    save(data) {
+        try {
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+            return true;
+        } catch (e) {
+            console.error('Error saving to localStorage:', e);
+            return false;
+        }
+    },
+
+    load() {
+        try {
+            const data = localStorage.getItem(this.STORAGE_KEY);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            console.error('Error loading from localStorage:', e);
+            return null;
+        }
+    },
+
+    clear() {
+        try {
+            localStorage.removeItem(this.STORAGE_KEY);
+            return true;
+        } catch (e) {
+            console.error('Error clearing localStorage:', e);
+            return false;
+        }
+    }
+};
+
+// ============================================
+// js/app.js - Główna logika aplikacji
+// ============================================
+
+const app = {
+    state: {
+        selectedEmotion: null,
+        intensity: 3,
+        currentTemplate: null,
+        checkins: [],
+        entries: [],
+        period: 7
+    },
+
+    init() {
+        this.loadFromStorage();
+        this.renderEmotions();
+        this.updateDate();
+        this.setupSlider();
+        this.renderHistory();
+        this.renderTrends();
+        this.updateAffirmation('other');
+    },
+
+    // ========== Emotions ==========
+    renderEmotions() {
+        const grid = document.getElementById('emotion-grid');
+        grid.innerHTML = AppData.emotions.map(emotion => `
+            <div class="emotion-card" data-emotion="${emotion.code}" onclick="app.selectEmotion('${emotion.code}', '${emotion.icon}')">
+                <div class="emotion-icon">${emotion.icon}</div>
+                <div class="emotion-label">${emotion.label}</div>
+            </div>
+        `).join('');
+    },
+
+    selectEmotion(code, icon) {
+        document.querySelectorAll('.emotion-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        const card = document.querySelector(`[data-emotion="${code}"]`);
+        if (card) card.classList.add('selected');
+        
+        this.state.selectedEmotion = { code, icon };
+        this.updateAffirmation(code);
+    },
+
+    // ========== Affirmations ==========
+    updateAffirmation(emotionCode) {
+        const affirmations = AppData.affirmations[emotionCode] || AppData.affirmations.other;
+        const random = affirmations[Math.floor(Math.random() * affirmations.length)];
+        document.getElementById('affirmation-text').textContent = random;
+    },
+
+    refreshAffirmation() {
+        const emotion = this.state.selectedEmotion?.code || 'other';
+        this.updateAffirmation(emotion);
+    },
+
+    // ========== Slider ==========
+    setupSlider() {
+        const slider = document.getElementById('intensity-slider');
+        const value = document.getElementById('intensity-value');
+        
+        slider.addEventListener('input', (e) => {
+            value.textContent = e.target.value;
+            this.state.intensity = parseInt(e.target.value);
+        });
+    },
+
+    // ========== Date ==========
+    updateDate() {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const date = new Date().toLocaleDateString('pl-PL', options);
+        const dateEl = document.getElementById('current-date');
+        if (dateEl) dateEl.textContent = date;
+    },
+
+    // ========== Check-in ==========
+    saveCheckin() {
+        if (!this.state.selectedEmotion) {
+            this.showToast('Wybierz najpierw emocję');
+            return;
+        }
+
+        const checkin = {
+            id: Date.now(),
+            emotion: this.state.selectedEmotion,
+            intensity: this.state.intensity,
+            timestamp: new Date().toISOString(),
+            date: new Date().toLocaleDateString('pl-PL')
+        };
+
+        this.state.checkins.push(checkin);
+        this.saveToStorage();
+        this.showToast('✓ Check-in zapisany!');
+        
+        this.resetCheckinForm();
+        this.renderHistory();
+        this.renderTrends();
+    },
+
+    resetCheckinForm() {
+        document.querySelectorAll('.emotion-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        this.state.selectedEmotion = null;
+        document.getElementById('intensity-slider').value = 3;
+        document.getElementById('intensity-value').textContent = '3';
+        this.state.intensity = 3;
+    },
+
+    goToTemplates() {
+        if (!this.state.selectedEmotion) {
+            this.showToast('Wybierz najpierw emocję');
+            return;
+        }
+        
+        this.saveCheckin();
+        this.renderTemplates();
+        this.showScreen('templates-screen');
+    },
+
+    // ========== Templates ==========
+    renderTemplates() {
+        const content = document.getElementById('templates-content');
+        const emotion = this.state.selectedEmotion?.code;
+        
+        const emotionToTemplate = {
+            anger: ['anger', 'boundaries'],
+            sadness: ['soothe', 'compassion', 'letgo'],
+            anxiety: ['soothe', 'boundaries'],
+            guilt: ['compassion', 'boundaries'],
+            shame: ['compassion', 'soothe'],
+            loneliness: ['compassion', 'soothe']
+        };
+
+        const recommendedTemplates = emotionToTemplate[emotion] || [];
+        
+        content.innerHTML = AppData.templates.map(template => {
+            const isRecommended = recommendedTemplates.includes(template.id);
+            
+            return `
+                <div class="template-card ${isRecommended ? 'recommended' : ''}" onclick="app.openTemplate('${template.id}')">
+                    ${isRecommended ? '<span class="badge">Polecane</span>' : ''}
+                    <div class="template-header">
+                        <span class="template-icon">${template.icon}</span>
+                        <div class="template-title">${template.title}</div>
+                    </div>
+                    <div class="template-desc">${template.desc}</div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    openTemplate(templateId) {
+        const template = AppData.templates.find(t => t.id === templateId);
+        if (!template) return;
+
+        this.state.currentTemplate = template;
+        document.getElementById('journal-title').textContent = template.title;
+        
+        const promptsContainer = document.getElementById('journal-prompts');
+        promptsContainer.innerHTML = template.prompts.map((prompt, index) => `
+            <div class="prompt-field">
+                <label class="prompt-label">${prompt}</label>
+                <textarea class="prompt-textarea" data-index="${index}" placeholder="Twoja odpowiedź (opcjonalnie)..."></textarea>
+            </div>
+        `).join('');
+        
+        this.showScreen('journal-screen');
+    },
+
+    // ========== Journal Entry ==========
+    saveEntry() {
+        const textareas = document.querySelectorAll('.prompt-textarea');
+        const answers = Array.from(textareas).map(ta => ta.value);
+        
+        if (answers.every(a => !a.trim())) {
+            this.showToast('Wypełnij przynajmniej jedno pole');
+            return;
+        }
+
+        const entry = {
+            id: Date.now(),
+            template: this.state.currentTemplate,
+            emotion: this.state.selectedEmotion,
+            answers: answers,
+            timestamp: new Date().toISOString(),
+            date: new Date().toLocaleDateString('pl-PL')
+        };
+
+        this.state.entries.push(entry);
+        this.saveToStorage();
+        this.showToast('✓ Wpis zapisany!');
+        this.renderHistory();
+        
+        textareas.forEach(ta => ta.value = '');
+        this.showScreen('home-screen');
+    },
+
+    // ========== History ==========
+    renderHistory() {
+        const content = document.getElementById('history-content');
+        const allItems = [
+            ...this.state.checkins.map(c => ({ ...c, type: 'checkin' })),
+            ...this.state.entries.map(e => ({ ...e, type: 'entry' }))
+        ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        if (allItems.length === 0) {
+            content.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📖</div>
+                    <div class="empty-text">
+                        Nie masz jeszcze wpisów.<br>
+                        Zrób check-in lub dodaj pierwszy wpis.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        content.innerHTML = allItems.map(item => {
+            const intensityDots = '●'.repeat(item.intensity) + '○'.repeat(5 - item.intensity);
+            const preview = item.type === 'entry' && item.answers && item.answers[0] 
+                ? `<div class="card-preview">${item.answers[0].substring(0, 100)}${item.answers[0].length > 100 ? '...' : ''}</div>`
+                : '';
+            
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">${item.emotion.icon}</div>
+                        <div class="card-info">
+                            <div class="card-date">${item.date}</div>
+                            <div class="card-title">${item.template ? item.template.title : 'Check-in'}</div>
+                        </div>
+                    </div>
+                    <div class="card-preview">Intensywność: ${intensityDots}</div>
+                    ${preview}
+                </div>
+            `;
+        }).join('');
+    },
+
+    // ========== Trends ==========
+    renderTrends() {
+        const chartContent = document.getElementById('chart-content');
+        const insightsContent = document.getElementById('insights-content');
+        
+        if (this.state.checkins.length < 3) {
+            chartContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <div class="empty-text">Zrób min. 3 check-iny aby zobaczyć trendy</div>
+                </div>
+            `;
+            insightsContent.innerHTML = '';
+            return;
+        }
+
+        const emotionCounts = {};
+        this.state.checkins.forEach(checkin => {
+            const code = checkin.emotion.code;
+            emotionCounts[code] = (emotionCounts[code] || 0) + 1;
+        });
+
+        const mostFrequent = Object.entries(emotionCounts)
+            .sort(([,a], [,b]) => b - a)[0];
+        
+        const emotionLabel = AppData.emotions.find(e => e.code === mostFrequent[0])?.label || mostFrequent[0];
+
+        chartContent.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📈</div>
+                <div class="empty-text">${this.state.checkins.length} check-inów w ostatnich ${this.state.period} dniach</div>
+            </div>
+        `;
+
+        insightsContent.innerHTML = `
+            <div class="insight-box">
+                <div class="insight-title">💡 Twoje wzorce</div>
+                <div class="insight-text">
+                    Najczęstsza emocja: <strong>${emotionLabel} (${mostFrequent[1]}x)</strong><br><br>
+                    Porada: Zauważ, co się dzieje gdy czujesz ${emotionLabel.toLowerCase()} — może to być sygnał do wprowadzenia granic lub samo-współczucia.
+                </div>
+            </div>
+        `;
+    },
+
+    setPeriod(days) {
+        this.state.period = days;
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        this.renderTrends();
+    },
+
+    // ========== Navigation ==========
+    showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        const targetScreen = document.getElementById(screenId);
+        if (targetScreen) targetScreen.classList.add('active');
+
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        const activeTab = document.querySelector(`[onclick*="${screenId}"]`);
+        if (activeTab) activeTab.classList.add('active');
+
+        if (screenId === 'history-screen') {
+            this.renderHistory();
+        } else if (screenId === 'trends-screen') {
+            this.renderTrends();
+        }
+    },
+
+    // ========== Settings ==========
+    toggleSetting(element) {
+        element.classList.toggle('active');
+    },
+
+    confirmDeleteAll() {
+        document.getElementById('modal').classList.add('active');
+    },
+
+    closeModal() {
+        document.getElementById('modal').classList.remove('active');
+    },
+
+    deleteAllData() {
+        this.state.checkins = [];
+        this.state.entries = [];
+        Storage.clear();
+        this.closeModal();
+        this.showToast('✓ Wszystkie dane zostały usunięte');
+        this.renderHistory();
+        this.renderTrends();
+    },
+
+    // ========== UI Helpers ==========
+    showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    },
+
+    // ========== Storage ==========
+    saveToStorage() {
+        Storage.save({
+            checkins: this.state.checkins,
+            entries: this.state.entries
+        });
+    },
+
+    loadFromStorage() {
+        const data = Storage.load();
+        if (data) {
+            this.state.checkins = data.checkins || [];
+            this.state.entries = data.entries || [];
+        }
+    }
+};
+
+// Initialize app when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
